@@ -1,0 +1,37 @@
+name: Autoformat C++ code and push
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+  pull_request:
+
+jobs:
+  autoformat:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+
+      - name: Run clang-format autoformatter
+        run: |
+          # Find all C++ source/header files and format them
+          find . -regex '.*\.\(cpp\|hpp\|cc\|hh\|cxx\|h\|c\)$' -exec clang-format -i {} +
+
+      - name: Commit and push changes if any
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "Autoformat code with clang-format"
+            git push
+          else
+            echo "No changes to commit"
+          fi
